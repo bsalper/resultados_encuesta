@@ -1,13 +1,16 @@
-export default function Filtros({ setSearchText }) {
+import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
 
+export default function Filtros({ searchText, setSearchText }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <input
-        type="text"
-        placeholder="Buscar por nombre..."
+    <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+      <TextField
+        size="small"
+        label="Buscar por nombre"
+        value={searchText}
         onChange={(e) => setSearchText(e.target.value)}
-        style={{ padding: 8, width: 250 }}
+        sx={{ minWidth: 260 }}
       />
-    </div>
+    </Box>
   );
 }
