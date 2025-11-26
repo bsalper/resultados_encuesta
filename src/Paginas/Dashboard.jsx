@@ -19,11 +19,9 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 export default function Dashboard() {
   const [rows, setRows] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function loadData() {
-      setLoading(true);
       const { data, error } = await supabase
         .from("respuesta")
         .select(`
@@ -44,7 +42,6 @@ export default function Dashboard() {
           }))
         );
       }
-      setLoading(false);
     }
     loadData();
   }, []);
