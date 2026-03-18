@@ -3,18 +3,6 @@ import supabase from '../Servicios/supabaseClient'
 
 import ReportTable from "../Componentes/TablaReportes";
 import Filters from "../Componentes/Filtros";
-import { exportToCSV } from "../Componentes/ExportarCSV";
-
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import DownloadIcon from '@mui/icons-material/Download';
-import RefreshIcon from '@mui/icons-material/Refresh';
 
 export default function Dashboard() {
   const [rows, setRows] = useState([]);
@@ -22,25 +10,42 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function loadData() {
-      const { data, error } = await supabase
-        .from("respuesta")
-        .select(`
-          idrespuesta,
-          nombreencuestado,
-          fotourl,
-          fecha,
-          pregunta:pregunta(descripcion),
-          opcion:tiporespuesta(descripcion)
-        `);
+      try {
+        const { data, error } = await supabase
+          .from("formularios_hechos")
+          .select(`
+            id_formulario,
+            nombre_encuestado,
+            fecha,
+            tipo_formulario,
+            respuestas_operario (
+              idrespuestas,
+              fotourl,
+              descripcion,
+              pregunta:idpregunta(descripcion),
+              opcion:idopcion(descripcion)
+            )
+          `)
+          .ilike('tipo_formulario', '%operario%')
+          .order('fecha', { ascending: false });
 
-      if (!error && data) {
-        setRows(
-          data.map((x) => ({
-            ...x,
-            pregunta: x.pregunta?.descripcion,
-            opcion: x.opcion?.descripcion
-          }))
-        );
+        if (error) {
+          console.error("Error cargando operarios:", error);
+          return;
+        }
+
+        if (data) {
+          const formateados = data.map(form => ({
+            id: form.id_formulario,
+            usuario: form.nombre_encuestado || `ID: ${form.id_usuario}`,
+            fecha: form.fecha,
+            tipo: form.tipo_formulario,
+            respuestas: form.respuestas_operario 
+          }));
+          setRows(formateados);
+        }
+      } catch (err) {
+        console.error("Error en el flujo de datos:", err);
       }
     }
     loadData();
@@ -48,107 +53,168 @@ export default function Dashboard() {
 
   const filteredRows = useMemo(
     () => rows.filter((r) =>
-      r.nombreencuestado?.toLowerCase().includes(searchText.toLowerCase())
+      r.usuario?.toLowerCase().includes(searchText.toLowerCase()) ||
+      r.id.toString().includes(searchText)
     ),
     [rows, searchText]
   );
 
   const stats = useMemo(() => {
-    const total = rows.length;
-    const uniqueNames = new Set(rows.map(r => r.nombreencuestado)).size;
-    const latest = rows.reduce((acc, r) => {
-      const d = r.fecha ? new Date(r.fecha) : null;
-      if (!acc || (d && d > acc)) return d;
-      return acc;
-    }, null);
-
-    const mostAsked = rows.reduce((acc, r) => {
-      acc[r.pregunta] = (acc[r.pregunta] || 0) + 1;
-      return acc;
-    }, {});
-    const topQuestion = Object.entries(mostAsked).sort((a,b) => b[1]-a[1])[0];
-
     return {
-      total,
-      uniqueNames,
-      latest: latest ? new Date(latest).toLocaleString() : '—',
-      topQuestion: topQuestion ? `${topQuestion[0]} (${topQuestion[1]})` : '—'
+      total: rows.length,
+      latest: rows[0]?.fecha ? new Date(rows[0].fecha).toLocaleString('es-CL') : '—',
     };
   }, [rows]);
 
   return (
-    <Container sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">Reportes de Respuestas</Typography>
-        <Box>
-          <Button
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            onClick={() => exportToCSV("reporte.csv", filteredRows)}
-            sx={{
-              mr: 1,
-              backgroundColor: "#E2DC00",
-              color: "#000",
-              "&:hover": {
-                backgroundColor: "#E2DC00",
-              }
-            }}
-          >
-            Exportar CSV
-          </Button>
-          <IconButton
-            onClick={() => window.location.reload()}
-            sx={{
-              color: "#E2DC00",
-              "&:hover": { color: "#E2DC00" }
-            }}
-          >
-            <RefreshIcon />
-          </IconButton>
-        </Box>
-      </Box>
+    <div className="dashboard-container">
+      {/* HEADER: Título y Logo */}
+      <header className="dashboard-header">
+        <h1 className="main-title">Reporte Checklist Camión</h1>
+        <div className="logo-wrapper">
+          <img src="/logo.png" alt="Logo Moving Food" className="brand-logo" />
+        </div>
+      </header>
 
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">Total respuestas</Typography>
-              <Typography variant="h5">{stats.total}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">Encuestados únicos</Typography>
-              <Typography variant="h5">{stats.uniqueNames}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">Última respuesta</Typography>
-              <Typography variant="h6">{stats.latest}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent>
-              <Typography variant="subtitle2" color="text.secondary">Pregunta más frecuente</Typography>
-              <Typography variant="h6">{stats.topQuestion}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* CARDS DE ESTADÍSTICAS */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <span className="stat-label">Revisiones totales</span>
+          <span className="stat-value">{stats.total}</span>
+        </div>
+        <div className="stat-card">
+          <span className="stat-label">Último registro</span>
+          <span className="stat-value small-text">{stats.latest}</span>
+        </div>
+      </div>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+      {/* BARRA DE FILTROS Y CONTADOR */}
+      <div className="actions-bar">
         <Filters searchText={searchText} setSearchText={setSearchText} />
-        <Typography variant="body2" color="text.secondary">{filteredRows.length} filas</Typography>
-      </Box>
+        <p className="results-count">
+          <strong>{filteredRows.length}</strong> resultados encontrados
+        </p>
+      </div>
 
+      {/* TABLA PERSONALIZADA */}
       <ReportTable rows={filteredRows} />
-    </Container>
+
+      {/* FOOTER */}
+      <footer className="dashboard-footer">
+        <p>{new Date().getFullYear()} © <strong>Moving Food</strong> - Checklist de Camiones</p>
+        <span>Desarrollado para la gestión interna de flotas y activos.</span>
+      </footer>
+
+      {/* ESTILOS CSS */}
+      <style jsx>{`
+        .dashboard-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 20px;
+          font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+          background-color: #f9fbf9; /* Un fondo casi blanco con toque verde */
+          min-height: 100vh;
+        }
+
+        .dashboard-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 30px;
+        }
+
+        .main-title {
+          font-size: 2rem;
+          font-weight: 800;
+          color: #2c3e50;
+          margin: 0;
+        }
+
+        .brand-logo {
+          height: 100px;
+          width: auto;
+          object-fit: contain;
+        }
+
+        .stats-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+
+        .stat-card {
+          background: white;
+          padding: 20px;
+          border-radius: 12px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+          display: flex;
+          flex-direction: column;
+          border-left: 5px solid #004d40; /* Línea verde Moving Food */
+        }
+
+        .stat-label {
+          font-size: 0.85rem;
+          color: #666;
+          text-transform: uppercase;
+          margin-bottom: 8px;
+          letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+          font-size: 1.8rem;
+          font-weight: 700;
+          color: #004d40;
+        }
+
+        .stat-value.small-text {
+          font-size: 1.2rem;
+        }
+
+        .actions-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 15px;
+        }
+
+        .results-count {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0;
+        }
+
+        .dashboard-footer {
+          margin-top: 50px;
+          padding-top: 20px;
+          border-top: 1px solid #eee;
+          text-align: center;
+          color: #888;
+        }
+
+        .dashboard-footer p {
+          margin: 0;
+          font-size: 0.9rem;
+        }
+
+        .dashboard-footer span {
+          font-size: 0.75rem;
+          display: block;
+          margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+          .dashboard-header {
+            flex-direction: column;
+            text-align: center;
+            gap: 20px;
+          }
+          .main-title { font-size: 1.5rem; }
+          .actions-bar { justify-content: center; text-align: center; }
+        }
+      `}</style>
+    </div>
   );
 }
