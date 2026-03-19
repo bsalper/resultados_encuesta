@@ -11,23 +11,27 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const { data, error } = await supabase
-          .from("formularios_hechos")
-          .select(`
-            id_formulario,
-            nombre_encuestado,
-            fecha,
-            tipo_formulario,
-            respuestas_operario (
-              idrespuestas,
-              fotourl,
-              descripcion,
-              pregunta:idpregunta(descripcion),
-              opcion:idopcion(descripcion)
-            )
-          `)
-          .ilike('tipo_formulario', '%operario%')
-          .order('fecha', { ascending: false });
+        // En Dashboard.jsx, dentro de loadData:
+      // En Dashboard.jsx, dentro de loadData:
+      const { data, error } = await supabase
+        .from("formularios_hechos")
+        .select(`
+          id_formulario,
+          nombre_encuestado,
+          fecha,
+          tipo_formulario,
+          respuestas_operario (
+            idrespuestas,
+            idpregunta,
+            descripcion,
+            idopcion,
+            fotourl,
+            pregunta:idpregunta (descripcion), 
+            opcion:idopcion (descripcion)
+          )
+        `)
+        .ilike('tipo_formulario', '%operario%')
+        .order('fecha', { ascending: false });
 
         if (error) {
           console.error("Error cargando operarios:", error);
@@ -35,15 +39,21 @@ export default function Dashboard() {
         }
 
         if (data) {
-          const formateados = data.map(form => ({
+        const formateados = data.map(form => {
+          // Buscamos la respuesta de la patente (ID 32)
+          const respPatente = form.respuestas_operario?.find(r => Number(r.idpregunta) === 32);
+
+          return {
             id: form.id_formulario,
-            usuario: form.nombre_encuestado || `ID: ${form.id_usuario}`,
+            usuario: form.nombre_encuestado || "Usuario Desconocido",
             fecha: form.fecha,
-            tipo: form.tipo_formulario,
-            respuestas: form.respuestas_operario 
-          }));
-          setRows(formateados);
-        }
+            respuestas: form.respuestas_operario, // Pasamos las respuestas tal cual para el Modal
+            // Extraemos la patente solo para mostrarla en la columna de la tabla
+            patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A"
+          };
+        });
+        setRows(formateados);
+      }
       } catch (err) {
         console.error("Error en el flujo de datos:", err);
       }
@@ -102,7 +112,7 @@ export default function Dashboard() {
       {/* FOOTER */}
       <footer className="dashboard-footer">
         <p>{new Date().getFullYear()} © <strong>Moving Food</strong> - Checklist de Camiones</p>
-        <span>Desarrollado para la gestión interna de flotas y activos.</span>
+        <span>Desarrollado para la gestión interna de flotas.</span>
       </footer>
 
       {/* ESTILOS CSS */}
