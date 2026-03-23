@@ -61,13 +61,31 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  const filteredRows = useMemo(
-    () => rows.filter((r) =>
-      r.usuario?.toLowerCase().includes(searchText.toLowerCase()) ||
-      r.id.toString().includes(searchText)
-    ),
-    [rows, searchText]
-  );
+  // Modificación en Dashboard.jsx
+  const filteredRows = useMemo(() => {
+    // Si no hay texto, devolvemos todo
+    if (!searchText.trim()) return rows;
+
+    const term = searchText.toLowerCase().trim();
+
+    return rows.filter((r) => {
+      // 1. Buscamos en el nombre del chofer
+      const nombreChofer = (r.usuario || "").toLowerCase();
+      
+      // 2. Buscamos en la patente
+      const patenteVehiculo = (r.patente || "").toLowerCase();
+      
+      // 3. Buscamos en el ID (por si acaso)
+      const idFormulario = (r.id || "").toString();
+
+      // Si el término coincide con CUALQUIERA de los tres, se muestra la fila
+      return (
+        nombreChofer.includes(term) || 
+        patenteVehiculo.includes(term) || 
+        idFormulario.includes(term)
+      );
+    });
+  }, [rows, searchText]);
 
   const stats = useMemo(() => {
     return {

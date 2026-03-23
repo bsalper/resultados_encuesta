@@ -21,7 +21,7 @@ export default function Filtros({ searchText, setSearchText }) {
         <input
           type="text"
           className="search-input"
-          placeholder="Buscar chofer por nombre..."
+          placeholder="Buscar por chofer o patente..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
         />
