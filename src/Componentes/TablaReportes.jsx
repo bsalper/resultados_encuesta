@@ -1,9 +1,19 @@
 import { useState, useMemo } from "react";
-import { Modal, Box, Typography, IconButton, List, ListItem, Divider } from "@mui/material";
+import { Modal, Box, Typography, IconButton, List, ListItem, Divider, Tooltip } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+// Importaciones de iconos
+import imgBateria from '../assets/bateria.png';
+import imgNeumaticos from '../assets/neumatico.png';
+import imgRefrigerante from '../assets/refrigerante.png';
+import imgFreno from '../assets/freno.png';
+import imgAceite from '../assets/aceite.png';
+import imgLuces from '../assets/luces.png';
+import imgNeumaticor from '../assets/neumaticor.png';
+import imgEspejos from '../assets/espejo.png';
+import imgParachoques from '../assets/parachoque.png';
 
 // Recibimos "searchText" como prop desde el padre
 export default function TablaReportes({ rows = [], searchText = "" }) {
@@ -90,6 +100,7 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
               <th onClick={() => requestSort('fecha')} style={{ cursor: 'pointer' }}>
                 <Box display="flex" alignItems="center" gap={1}>Fecha {getSortIcon('fecha')}</Box>
               </th>
+              <th style={{ textAlign: 'center' }}>Alertas</th>
               <th style={{ textAlign: 'center' }}>Detalle</th>
             </tr>
           </thead>
@@ -99,6 +110,91 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
                 <td className="font-bold">{row.usuario}</td>
                 <td className="font-bold" style={{ color: '#004d40' }}>{row.patente || "N/A"}</td>
                 <td>{row.fecha ? new Date(row.fecha).toLocaleString('es-CL') : '—'}</td>
+                <td style={{ textAlign: 'center' }}>
+                  <Box display="flex" justifyContent="center" gap={1}>
+                    
+                    {row.alertas?.bateria && (
+                      <Tooltip title="Atención: Falla en Batería" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgBateria} alt="Alerta Batería" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.neumaticos && (
+                      <Tooltip title="Atención: Revisar Neumáticos" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgNeumaticos} alt="Alerta Neumáticos" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.refrigerante && (
+                      <Tooltip title="Atención: Revisar líquido refrigerante" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgRefrigerante} alt="Alerta Refrigerante" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.freno && (
+                      <Tooltip title="Atención: Revisar Frenos" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgFreno} alt="Alerta Frenos" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.aceite && (
+                      <Tooltip title="Atención: Revisar aceite" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgAceite} alt="Alerta Aceite" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.lucesd && (
+                      <Tooltip title="Atención: Revisar luces delanteras" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgLuces} alt="Alerta Luces Delanteras" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.lucest && (
+                      <Tooltip title="Atención: Revisar luces traseras" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgLuces} alt="Alerta Luces Traseras" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.neumaticosr && (
+                      <Tooltip title="Atención: Revisar Neumáticos de respuesto" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgNeumaticor} alt="Alerta Neumático Repuesto" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.espejos && (
+                      <Tooltip title="Atención: Revisar Espejos y Parabrisas" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgEspejos} alt="Alerta Espejos y Parabrisas" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.parachoques && (
+                      <Tooltip title="Atención: Revisar Defensa frontal y trasera" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgParachoques} alt="Alerta Parachoques" />
+                        </div>
+                      </Tooltip>
+                    )}
+                    
+                  </Box>
+                </td>
                 <td style={{ textAlign: 'center' }}>
                   <IconButton onClick={() => setSelectedSurvey(row)} sx={{ color: '#004d40' }}>
                     <OpenInNewIcon />
@@ -177,6 +273,28 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
         .moving-food-table td { padding: 16px 20px; border-bottom: 1px solid rgba(0,0,0,0.04); color: #2c3e50; }
         .moving-food-table tbody tr:hover { background-color: rgba(255, 255, 255, 0.4); }
         .font-bold { font-weight: 600; }
+
+        /* Estilos para los iconos PNG de Alertas */
+        .custom-alert-icon {
+          width: 25px; /* Tamaño ideal para la celda */
+          height: 25px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: pulse-alert 2s infinite;
+        }
+
+        .custom-alert-icon img {
+          width: 100%;
+          height: auto;
+          object-fit: contain;
+        }
+
+        @keyframes pulse-alert {
+          0% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.6; transform: scale(1.1); }
+          100% { opacity: 1; transform: scale(1); }
+        }
       `}</style>
     </div>
   );

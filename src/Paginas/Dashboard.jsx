@@ -44,6 +44,15 @@ export default function Dashboard() {
         const formateados = data.map(form => {
           // Buscamos la respuesta de la patente (ID 32)
           const respPatente = form.respuestas_operario?.find(r => Number(r.idpregunta) === 32);
+          const respuestas = form.respuestas_operario || [];
+
+          const checkAlerta = (idPregunta) => {
+            const r = respuestas.find(res => Number(res.idpregunta) === idPregunta);
+            
+            const textoRespuesta = r?.opcion?.descripcion || r?.descripcion || "";
+            
+            return textoRespuesta.trim().toLowerCase() === "requiere atención";
+          };
 
           return {
             id: form.id_formulario,
@@ -51,7 +60,20 @@ export default function Dashboard() {
             fecha: form.fecha,
             respuestas: form.respuestas_operario, // Pasamos las respuestas tal cual para el Modal
             // Extraemos la patente solo para mostrarla en la columna de la tabla
-            patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A"
+            patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A",
+
+            alertas: {
+              bateria: checkAlerta(37),
+              neumaticos: checkAlerta(25),
+              aceite: checkAlerta(29),
+              frenos: checkAlerta(38),
+              refrigerante: checkAlerta(36),
+              lucesd: checkAlerta(24),
+              lucest: checkAlerta(33),
+              neumaticosr: checkAlerta(34),
+              parachoques: checkAlerta(35),
+              espejos: checkAlerta(23)
+            }
           };
         });
         setRows(formateados);
