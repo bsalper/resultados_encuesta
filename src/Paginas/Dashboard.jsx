@@ -7,6 +7,8 @@ import Filters from "../Componentes/Filtros";
 export default function Dashboard() {
   const [rows, setRows] = useState([]);
   const [searchText, setSearchText] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     async function loadData() {
@@ -61,31 +63,36 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  // Modificación en Dashboard.jsx
   const filteredRows = useMemo(() => {
-    // Si no hay texto, devolvemos todo
-    if (!searchText.trim()) return rows;
+    let items = [...rows];
 
-    const term = searchText.toLowerCase().trim();
-
-    return rows.filter((r) => {
-      // 1. Buscamos en el nombre del chofer
-      const nombreChofer = (r.usuario || "").toLowerCase();
-      
-      // 2. Buscamos en la patente
-      const patenteVehiculo = (r.patente || "").toLowerCase();
-      
-      // 3. Buscamos en el ID (por si acaso)
-      const idFormulario = (r.id || "").toString();
-
-      // Si el término coincide con CUALQUIERA de los tres, se muestra la fila
-      return (
-        nombreChofer.includes(term) || 
-        patenteVehiculo.includes(term) || 
-        idFormulario.includes(term)
+    // 1. Filtro por Texto (Chofer/Patente/ID)
+    // Nota: Quitamos el "if (!searchText.trim()) return rows" del principio 
+    // para que los filtros de fecha puedan funcionar aunque no haya texto.
+    if (searchText.trim()) {
+      const term = searchText.toLowerCase().trim();
+      items = items.filter(r => 
+        (r.usuario || "").toLowerCase().includes(term) ||
+        (r.patente || "").toLowerCase().includes(term) ||
+        (r.id || "").toString().includes(term)
       );
-    });
-  }, [rows, searchText]);
+    }
+
+    // 2. Filtro por Rango de Fechas
+    if (startDate || endDate) {
+      items = items.filter(r => {
+        if (!r.fecha) return false;
+        const fechaRegistro = r.fecha.split('T')[0]; 
+        const inicioOk = startDate ? fechaRegistro >= startDate : true;
+        const finOk = endDate ? fechaRegistro <= endDate : true;
+        return inicioOk && finOk;
+      });
+    }
+
+    return items;
+
+    // IMPORTANTE: Agregamos startDate y endDate aquí abajo
+  }, [rows, searchText, startDate, endDate]);
 
   const stats = useMemo(() => {
     return {
@@ -116,9 +123,16 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* BARRA DE FILTROS Y CONTADOR */}
+      {/* BARRA DE FILTROS Y CONTADOR: UN SOLO BLOQUE CORREGIDO */}
       <div className="actions-bar">
-        <Filters searchText={searchText} setSearchText={setSearchText} />
+        <Filters 
+          searchText={searchText} 
+          setSearchText={setSearchText}
+          startDate={startDate}
+          setStartDate={setStartDate}
+          endDate={endDate}
+          setEndDate={setEndDate}
+        />
         <p className="results-count">
           <strong>{filteredRows.length}</strong> resultados encontrados
         </p>

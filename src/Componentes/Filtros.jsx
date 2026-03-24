@@ -1,10 +1,18 @@
 import React from 'react';
 
-export default function Filtros({ searchText, setSearchText }) {
+// AGREGAMOS las props que faltaban en la cabecera de la función
+export default function Filtros({ 
+  searchText, 
+  setSearchText, 
+  startDate, 
+  setStartDate, 
+  endDate, 
+  setEndDate 
+}) {
   return (
     <div className="filters-wrapper">
+      {/* Contenedor del Buscador de Texto */}
       <div className="search-container">
-        {/* Icono de Lupa (SVG simple) */}
         <svg 
           className="search-icon" 
           viewBox="0 0 24 24" 
@@ -26,7 +34,6 @@ export default function Filtros({ searchText, setSearchText }) {
           onChange={(e) => setSearchText(e.target.value)}
         />
         
-        {/* Botón opcional para limpiar la búsqueda si hay texto */}
         {searchText && (
           <button 
             className="clear-button" 
@@ -38,13 +45,37 @@ export default function Filtros({ searchText, setSearchText }) {
         )}
       </div>
 
-      {/* --- ESTILOS CSS PERSONALIZADOS --- */}
+      {/* Contenedor de Fechas (Separado para mejor orden) */}
+      <div className="date-filters">
+        <div className="date-input-group">
+          <label>Desde:</label>
+          <input 
+            type="date" 
+            value={startDate} 
+            onChange={(e) => setStartDate(e.target.value)} 
+          />
+        </div>
+        <div className="date-input-group">
+          <label>Hasta:</label>
+          <input 
+            type="date" 
+            value={endDate} 
+            onChange={(e) => setEndDate(e.target.value)} 
+          />
+        </div>
+        {(startDate || endDate) && (
+          <button className="reset-dates" onClick={() => {setStartDate(""); setEndDate("");}}>
+            Limpiar Fechas
+          </button>
+        )}
+      </div>
+
       <style jsx>{`
         .filters-wrapper {
           margin-bottom: 20px;
           display: flex;
           align-items: center;
-          gap: 15px;
+          gap: 20px;
           flex-wrap: wrap;
         }
 
@@ -53,58 +84,77 @@ export default function Filtros({ searchText, setSearchText }) {
           display: flex;
           align-items: center;
           width: 100%;
-          max-width: 320px; /* Ancho similar al TextField anterior */
+          max-width: 320px;
         }
 
         .search-input {
           width: 100%;
-          padding: 12px 15px 12px 45px; /* Espacio extra a la izquierda para el icono */
+          padding: 10px 15px 10px 45px;
           font-size: 0.95rem;
-          color: #333;
-          background-color: white;
           border: 1px solid #e0e0e0;
-          border-radius: 10px; /* Bordes redondeados modernos */
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 5px rgba(0,0,0,0.03); /* Sombra sutil */
+          border-radius: 10px;
+          transition: all 0.2s;
         }
 
-        /* Quitar el borde azul por defecto del navegador */
         .search-input:focus {
           outline: none;
-          border-color: #004d40; /* Verde corporativo de Moving Food */
-          box-shadow: 0 0 0 3px rgba(0, 77, 64, 0.1); /* Efecto de foco suave en verde */
+          border-color: #004d40;
+          box-shadow: 0 0 0 3px rgba(0, 77, 64, 0.1);
         }
 
-        /* Estilo para el icono de lupa */
         .search-icon {
           position: absolute;
           left: 15px;
           width: 18px;
           height: 18px;
-          color: #004d40; /* Verde corporativo */
-          pointer-events: none; /* Para que el clic pase a través del icono al input */
+          color: #004d40;
         }
 
-        /* Estilo para el botón de limpiar (✕) */
         .clear-button {
           position: absolute;
           right: 12px;
           background: none;
           border: none;
           color: #999;
-          font-size: 1.1rem;
           cursor: pointer;
-          padding: 5px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background-color 0.2s;
         }
 
-        .clear-button:hover {
-          background-color: #f0f0f0;
-          color: #e74c3c; /* Color rojo sutil al pasar el mouse */
+        /* Estilos para las Fechas */
+        .date-filters {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          background: #f1f3f1;
+          padding: 6px 15px;
+          border-radius: 10px;
+        }
+
+        .date-input-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .date-input-group label {
+          font-size: 0.8rem;
+          font-weight: bold;
+          color: #444;
+        }
+
+        .date-input-group input {
+          border: 1px solid #ccc;
+          border-radius: 5px;
+          padding: 4px;
+          font-family: inherit;
+        }
+
+        .reset-dates {
+          background: none;
+          border: none;
+          color: #c0392b;
+          font-size: 0.75rem;
+          cursor: pointer;
+          text-decoration: underline;
         }
       `}</style>
     </div>
