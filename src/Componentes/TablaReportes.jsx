@@ -137,7 +137,7 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
                       </Tooltip>
                     )}
 
-                    {row.alertas?.freno && (
+                    {row.alertas?.frenos && (
                       <Tooltip title="Atención: Revisar Frenos" arrow>
                         <div className="custom-alert-icon">
                           <img src={imgFreno} alt="Alerta Frenos" />
