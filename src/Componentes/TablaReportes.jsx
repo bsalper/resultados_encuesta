@@ -14,6 +14,7 @@ import imgLuces from '../assets/luces.png';
 import imgNeumaticor from '../assets/neumaticor.png';
 import imgEspejos from '../assets/espejo.png';
 import imgParachoques from '../assets/parachoque.png';
+import imgCandado from '../assets/candado.png';
 
 // Recibimos "searchText" como prop desde el padre
 export default function TablaReportes({ rows = [], searchText = "" }) {
@@ -114,7 +115,7 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
                   <Box display="flex" justifyContent="center" gap={1}>
                     
                     {row.alertas?.bateria && (
-                      <Tooltip title="Atención: Falla en Batería" arrow>
+                      <Tooltip title="Atención: Revisar Batería" arrow>
                         <div className="custom-alert-icon">
                           <img src={imgBateria} alt="Alerta Batería" />
                         </div>
@@ -189,6 +190,14 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
                       <Tooltip title="Atención: Revisar Defensa frontal y trasera" arrow>
                         <div className="custom-alert-icon">
                           <img src={imgParachoques} alt="Alerta Parachoques" />
+                        </div>
+                      </Tooltip>
+                    )}
+
+                    {row.alertas?.candado && (
+                      <Tooltip title="Atención: Revisar Candados y Pernos de puertas" arrow>
+                        <div className="custom-alert-icon">
+                          <img src={imgCandado} alt="Alerta Candados y Pernos" />
                         </div>
                       </Tooltip>
                     )}

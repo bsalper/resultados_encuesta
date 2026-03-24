@@ -72,7 +72,8 @@ export default function Dashboard() {
               lucest: checkAlerta(33),
               neumaticosr: checkAlerta(34),
               parachoques: checkAlerta(35),
-              espejos: checkAlerta(23)
+              espejos: checkAlerta(23),
+              candado: checkAlerta(26)
             }
           };
         });
