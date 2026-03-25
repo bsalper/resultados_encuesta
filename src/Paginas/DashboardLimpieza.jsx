@@ -152,7 +152,7 @@ export default function Dashboard() {
       <div 
         className="stat-card clickable-card" 
         onClick={() => navigate("/dashboard")}
-        style={{ cursor: 'pointer', borderLeft: '5px solid #ffa000' }}
+        style={{ cursor: 'pointer', borderLeft: '5px solid #E7F63C' }}
       >
         <span className="stat-label">Reporte Checklist Camión</span>
         <div className="stat-link-content">

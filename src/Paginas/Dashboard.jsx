@@ -175,7 +175,7 @@ export default function Dashboard() {
         <div 
           className="stat-card clickable-card" 
           onClick={() => navigate("/dashboard-limpieza")}
-          style={{ cursor: 'pointer', borderLeft: '5px solid #ffa000' }}
+          style={{ cursor: 'pointer', borderLeft: '5px solid #E7F63C' }}
         >
           <span className="stat-label">Reportes Checklist Limpieza</span>
           <div className="stat-link-content">
@@ -299,7 +299,7 @@ export default function Dashboard() {
         .text-right { text-align: right; }
 
         .stat-link-content { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-        .arrow-icon { font-size: 1.2rem; font-weight: bold; color: #ffa000; }
+        .arrow-icon { font-size: 1.2rem; font-weight: bold; color: #E7F63C; }
         .clickable-card:hover { background-color: #fff9f0; transform: translateY(-2px); transition: all 0.2s ease; }
 
         @media (max-width: 600px) {
