@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import supabase from '../Servicios/supabaseClient'
+import { useNavigate } from "react-router-dom";
 
 import ReportTable from "../Componentes/TablaReportes";
 import Filters from "../Componentes/Filtros";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [rows, setRows] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -13,27 +15,25 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        // En Dashboard.jsx, dentro de loadData:
-      // En Dashboard.jsx, dentro de loadData:
-      const { data, error } = await supabase
-        .from("formularios_hechos")
-        .select(`
-          id_formulario,
-          nombre_encuestado,
-          fecha,
-          tipo_formulario,
-          respuestas_operario (
-            idrespuestas,
-            idpregunta,
-            descripcion,
-            idopcion,
-            fotourl,
-            pregunta:idpregunta (descripcion), 
-            opcion:idopcion (descripcion)
-          )
-        `)
-        .ilike('tipo_formulario', '%operario%')
-        .order('fecha', { ascending: false });
+        const { data, error } = await supabase
+          .from("formularios_hechos")
+          .select(`
+            id_formulario,
+            nombre_encuestado,
+            fecha,
+            tipo_formulario,
+            respuestas_operario (
+              idrespuestas,
+              idpregunta,
+              descripcion,
+              idopcion,
+              fotourl,
+              pregunta:idpregunta (descripcion), 
+              opcion:idopcion (descripcion)
+            )
+          `)
+          .ilike('tipo_formulario', '%operario%')
+          .order('fecha', { ascending: false });
 
         if (error) {
           console.error("Error cargando operarios:", error);
@@ -41,44 +41,39 @@ export default function Dashboard() {
         }
 
         if (data) {
-        const formateados = data.map(form => {
-          // Buscamos la respuesta de la patente (ID 32)
-          const respPatente = form.respuestas_operario?.find(r => Number(r.idpregunta) === 32);
-          const respuestas = form.respuestas_operario || [];
+          const formateados = data.map(form => {
+            const respPatente = form.respuestas_operario?.find(r => Number(r.idpregunta) === 32);
+            const respuestas = form.respuestas_operario || [];
 
-          const checkAlerta = (idPregunta) => {
-            const r = respuestas.find(res => Number(res.idpregunta) === idPregunta);
-            
-            const textoRespuesta = r?.opcion?.descripcion || r?.descripcion || "";
-            
-            return textoRespuesta.trim().toLowerCase() === "requiere atención";
-          };
+            const checkAlerta = (idPregunta) => {
+              const r = respuestas.find(res => Number(res.idpregunta) === idPregunta);
+              const textoRespuesta = r?.opcion?.descripcion || r?.descripcion || "";
+              return textoRespuesta.trim().toLowerCase() === "requiere atención";
+            };
 
-          return {
-            id: form.id_formulario,
-            usuario: form.nombre_encuestado || "Usuario Desconocido",
-            fecha: form.fecha,
-            respuestas: form.respuestas_operario, // Pasamos las respuestas tal cual para el Modal
-            // Extraemos la patente solo para mostrarla en la columna de la tabla
-            patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A",
-
-            alertas: {
-              bateria: checkAlerta(37),
-              neumaticos: checkAlerta(25),
-              aceite: checkAlerta(29),
-              frenos: checkAlerta(38),
-              refrigerante: checkAlerta(36),
-              lucesd: checkAlerta(24),
-              lucest: checkAlerta(33),
-              neumaticosr: checkAlerta(34),
-              parachoques: checkAlerta(35),
-              espejos: checkAlerta(23),
-              candado: checkAlerta(26)
-            }
-          };
-        });
-        setRows(formateados);
-      }
+            return {
+              id: form.id_formulario,
+              usuario: form.nombre_encuestado || "Usuario Desconocido",
+              fecha: form.fecha,
+              respuestas: form.respuestas_operario,
+              patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A",
+              alertas: {
+                bateria: checkAlerta(37),
+                neumaticos: checkAlerta(25),
+                aceite: checkAlerta(29),
+                frenos: checkAlerta(38),
+                refrigerante: checkAlerta(36),
+                lucesd: checkAlerta(24),
+                lucest: checkAlerta(33),
+                neumaticosr: checkAlerta(34),
+                parachoques: checkAlerta(35),
+                espejos: checkAlerta(23),
+                candado: checkAlerta(26)
+              }
+            };
+          });
+          setRows(formateados);
+        }
       } catch (err) {
         console.error("Error en el flujo de datos:", err);
       }
@@ -88,10 +83,6 @@ export default function Dashboard() {
 
   const filteredRows = useMemo(() => {
     let items = [...rows];
-
-    // 1. Filtro por Texto (Chofer/Patente/ID)
-    // Nota: Quitamos el "if (!searchText.trim()) return rows" del principio 
-    // para que los filtros de fecha puedan funcionar aunque no haya texto.
     if (searchText.trim()) {
       const term = searchText.toLowerCase().trim();
       items = items.filter(r => 
@@ -100,8 +91,6 @@ export default function Dashboard() {
         (r.id || "").toString().includes(term)
       );
     }
-
-    // 2. Filtro por Rango de Fechas
     if (startDate || endDate) {
       items = items.filter(r => {
         if (!r.fecha) return false;
@@ -111,22 +100,31 @@ export default function Dashboard() {
         return inicioOk && finOk;
       });
     }
-
     return items;
-
-    // IMPORTANTE: Agregamos startDate y endDate aquí abajo
   }, [rows, searchText, startDate, endDate]);
 
   const stats = useMemo(() => {
+    const conteoPatentes = filteredRows.reduce((acc, current) => {
+      const patente = current.patente;
+      if (patente && patente !== "N/A") {
+        acc[patente] = (acc[patente] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    const listaPatentesViajes = Object.entries(conteoPatentes)
+      .map(([patente, viajes]) => ({ patente, viajes }))
+      .sort((a, b) => b.viajes - a.viajes);
+
     return {
-      total: rows.length,
-      latest: rows[0]?.fecha ? new Date(rows[0].fecha).toLocaleString('es-CL') : '—',
+      totalRevisiones: filteredRows.length,
+      patentesAgrupadas: listaPatentesViajes,
+      latest: filteredRows[0]?.fecha ? new Date(filteredRows[0].fecha).toLocaleString('es-CL') : '—',
     };
-  }, [rows]);
+  }, [filteredRows]);
 
   return (
     <div className="dashboard-container">
-      {/* HEADER: Título y Logo */}
       <header className="dashboard-header">
         <h1 className="main-title">Reporte Checklist Camión</h1>
         <div className="logo-wrapper">
@@ -134,19 +132,59 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* CARDS DE ESTADÍSTICAS */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-label">Revisiones totales</span>
-          <span className="stat-value">{stats.total}</span>
+        <div className="stat-card table-card">
+          <div className="table-card-header">
+            <span className="stat-label">Revisiones por Patente</span>
+            <span className="stat-total-label">
+              Total: <strong>{stats.totalRevisiones}</strong>
+            </span>
+          </div>
+          
+          <div className="mini-table-container">
+            <table className="mini-stat-table">
+              <thead>
+                <tr>
+                  <th>PATENTE VEHÍCULO</th>
+                  <th className="text-right">CANTIDAD DE VIAJES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.patentesAgrupadas.length > 0 ? (
+                  stats.patentesAgrupadas.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.patente}</td>
+                      <td className="text-right count-cell">{item.viajes}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="2" className="text-center empty-cell">No hay datos de patentes</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
         <div className="stat-card">
           <span className="stat-label">Último registro</span>
           <span className="stat-value small-text">{stats.latest}</span>
         </div>
+
+        <div 
+          className="stat-card clickable-card" 
+          onClick={() => navigate("/dashboard-limpieza")}
+          style={{ cursor: 'pointer', borderLeft: '5px solid #ffa000' }}
+        >
+          <span className="stat-label">Reportes Checklist Limpieza</span>
+          <div className="stat-link-content">
+            <span className="stat-value small-text">Ir a Checklist Limpieza</span>
+            <span className="arrow-icon">→</span>
+          </div>
+        </div>
       </div>
 
-      {/* BARRA DE FILTROS Y CONTADOR: UN SOLO BLOQUE CORREGIDO */}
       <div className="actions-bar">
         <Filters 
           searchText={searchText} 
@@ -161,23 +199,20 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* TABLA PERSONALIZADA */}
       <ReportTable rows={filteredRows} />
 
-      {/* FOOTER */}
       <footer className="dashboard-footer">
         <p>{new Date().getFullYear()} © <strong>Moving Food</strong> - Checklist de Camiones</p>
         <span>Desarrollado para la gestión interna de flotas.</span>
       </footer>
 
-      {/* ESTILOS CSS */}
       <style jsx>{`
         .dashboard-container {
           max-width: 1200px;
           margin: 0 auto;
           padding: 40px 20px;
           font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-          background-color: #f9fbf9; /* Un fondo casi blanco con toque verde */
+          background-color: #f9fbf9;
           min-height: 100vh;
         }
 
@@ -215,7 +250,7 @@ export default function Dashboard() {
           box-shadow: 0 2px 10px rgba(0,0,0,0.05);
           display: flex;
           flex-direction: column;
-          border-left: 5px solid #004d40; /* Línea verde Moving Food */
+          border-left: 5px solid #004d40;
         }
 
         .stat-label {
@@ -232,9 +267,7 @@ export default function Dashboard() {
           color: #004d40;
         }
 
-        .stat-value.small-text {
-          font-size: 1.2rem;
-        }
+        .stat-value.small-text { font-size: 1.2rem; }
 
         .actions-bar {
           display: flex;
@@ -245,11 +278,7 @@ export default function Dashboard() {
           gap: 15px;
         }
 
-        .results-count {
-          font-size: 0.9rem;
-          color: #666;
-          margin: 0;
-        }
+        .results-count { font-size: 0.9rem; color: #666; margin: 0; }
 
         .dashboard-footer {
           margin-top: 50px;
@@ -259,23 +288,22 @@ export default function Dashboard() {
           color: #888;
         }
 
-        .dashboard-footer p {
-          margin: 0;
-          font-size: 0.9rem;
-        }
+        .table-card { padding: 15px !important; min-width: 300px; }
+        .table-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .stat-total-label { font-size: 0.8rem; color: #666; }
+        .mini-table-container { max-height: 150px; overflow-y: auto; }
+        .mini-stat-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .mini-stat-table th { text-align: left; background: #f4f4f4; padding: 5px; position: sticky; top: 0; color: #555; }
+        .mini-stat-table td { padding: 6px 5px; border-bottom: 1px solid #f0f0f0; }
+        .count-cell { font-weight: bold; color: #004d40; }
+        .text-right { text-align: right; }
 
-        .dashboard-footer span {
-          font-size: 0.75rem;
-          display: block;
-          margin-top: 5px;
-        }
+        .stat-link-content { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .arrow-icon { font-size: 1.2rem; font-weight: bold; color: #ffa000; }
+        .clickable-card:hover { background-color: #fff9f0; transform: translateY(-2px); transition: all 0.2s ease; }
 
         @media (max-width: 600px) {
-          .dashboard-header {
-            flex-direction: column;
-            text-align: center;
-            gap: 20px;
-          }
+          .dashboard-header { flex-direction: column; text-align: center; gap: 20px; }
           .main-title { font-size: 1.5rem; }
           .actions-bar { justify-content: center; text-align: center; }
         }
