@@ -45,9 +45,10 @@ export default function Dashboard() {
         if (data) {
         const formateados = data.map(form => {
 
-          const respPatente = form.respuestas_limpieza?.find(r => Number(r.idpregunta) === 40);
           const respuestas = form.respuestas_limpieza || [];
-
+          const respChofer = respuestas.find(r => Number(r.idpregunta) === 39);
+          const respPatente = respuestas.find(r => Number(r.idpregunta) === 40);
+          
           const checkAlerta = (idPregunta) => {
             const r = respuestas.find(res => Number(res.idpregunta) === idPregunta);
             
@@ -58,7 +59,7 @@ export default function Dashboard() {
 
           return {
             id: form.id_formulario,
-            usuario: form.nombre_encuestado || "Usuario Desconocido",
+            usuario: respChofer?.descripcion || "Usuario Desconocido",
             fecha: form.fecha,
             respuestas: form.respuestas_limpieza, // Pasamos las respuestas tal cual para el Modal
             // Extraemos la patente solo para mostrarla en la columna de la tabla
