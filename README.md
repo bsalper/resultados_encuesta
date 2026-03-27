@@ -19,43 +19,43 @@ Este proyecto es una interfaz administrativa desarrollada en React y Material UI
 
 ## Tecnologías Utilizadas
 
-* Frontend: React.js (Vite/CRA)
+* **Frontend:** React.js (Vite/CRA)
 
-* UI Library: Material UI (MUI)
+* **UI Library:** Material UI (MUI)
 
-* Backend as a Service: Supabase (PostgreSQL)
+* **Backend as a Service:** Supabase (PostgreSQL)
 
-* Iconografía: MUI Icons & Custom PNGs
+* **Iconografía:** MUI Icons & Custom PNGs
 
 ## Instalación y Configuración
 
 1.  [git clone https://github.com/tu-usuario/reporte-checklist-mf.git]
     cd reporte-checklist-mf
 
-2. Instalar dependencias:
+2. **Instalar dependencias:**
 
-    npm install
+    **npm install**
 
-3. Variables de Entorno:
+3. **Variables de Entorno:**
 
     Crea un archivo .env en la raíz del proyecto con tus credenciales de Supabase:
 
     REACT_APP_SUPABASE_URL=tu_url_de_supabase
     REACT_APP_SUPABASE_KEY=tu_llave_anonima
 
-4. Ejecutar en desarrollo:
+4. **Ejecutar en desarrollo:**
 
-    npm start
+    **npm start**
 
 ## Estructura del Proyecto
 
-* /src/Componentes: Contiene TablaReportes.jsx (Lógica del Modal y visualización) y Filtros.jsx.
+* **/src/Componentes:** Contiene TablaReportes.jsx (Lógica del Modal y visualización) y Filtros.jsx.
 
-* /src/Servicios: Cliente de conexión a Supabase.
+* **/src/Servicios:** Cliente de conexión a Supabase.
 
-* /src/assets: Iconos de alertas (batería, neumáticos, aceite, etc.).
+* **/src/assets:** Iconos de alertas (batería, neumáticos, aceite, etc.).
 
-* /src/Paginas: Contiene Dashboard.jsx, DashboardLimpieza.jsx y DashboardLimpieza.css
+* **/src/Paginas:** Contiene Dashboard.jsx, DashboardLimpieza.jsx y DashboardLimpieza.css
 
 ## Vista Previa
 
