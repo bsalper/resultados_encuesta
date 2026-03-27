@@ -245,7 +245,7 @@ export default function TablaReportes({ rows = [], searchText = "", showAuxiliar
             variant="subtitle2" 
             color="text.secondary" 
             mb={3} 
-            sx={{ backgroundColor: '#f5f5f5', p: 1.5, borderRadius: 2, display: 'flex', gap: 2 }}
+            sx={{ backgroundColor: '#f5f5f5', p: 1.5, alignItems: 'center', borderRadius: 2, display: 'flex', gap: 2 }}
           >
             <span>👤 <strong>{nombreChofer}</strong></span>
             <span>📅 {selectedSurvey?.fecha ? new Date(selectedSurvey.fecha).toLocaleString('es-CL') : ''}</span>
@@ -253,30 +253,78 @@ export default function TablaReportes({ rows = [], searchText = "", showAuxiliar
           </Typography>
 
           <List>
-            {Object.entries(respuestasAgrupadas).map(([titulo, respuestas], idx) => (
-              <div key={idx}>
-                <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 2 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#004d40', textTransform: 'uppercase', mb: 1 }}>
-                    {titulo}
-                  </Typography>
-                  <Box sx={{ width: '100%' }}>
-                    {respuestas.map((r, rIdx) => (
-                      <Box key={rIdx} sx={{ mb: 1.5 }}>
-                        {r.fotourl ? (
-                          <img src={r.fotourl} alt="Evidencia" style={{ maxWidth: '100%', borderRadius: '12px', border: '1px solid #ddd' }} />
-                        ) : (
-                          <Typography variant="body1" sx={{ color: '#333', display: 'flex', alignItems: 'center' }}>
+            {Object.entries(respuestasAgrupadas).map(([titulo, respuestas], idx) => {
+              const preguntaRaiz = respuestas[0]?.pregunta;
+              const todasLasOpciones = preguntaRaiz?.opciones || [];
+              
+              // Determinamos si es un caso de checklist (Documentación/Kit) o selección múltiple
+              const esSeleccionMultiple = (todasLasOpciones.length > 0 && respuestas.length > 1) || 
+                                          [27, 28].includes(Number(respuestas[0]?.idpregunta));
+
+              return (
+                <div key={idx}>
+                  <ListItem sx={{ flexDirection: 'column', alignItems: 'flex-start', py: 2 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#004d40', textTransform: 'uppercase', mb: 1 }}>
+                      {titulo}
+                    </Typography>
+                    
+                    <Box sx={{ width: '100%' }}>
+                      
+                      {/* 1. SECCIÓN DE IMÁGENES: Buscamos TODAS las fotos del grupo y las mostramos */}
+                      {respuestas.filter(r => r.fotourl).map((r, fIdx) => (
+                        <Box key={`foto-${fIdx}`} sx={{ mb: 1.5, textAlign: 'center' }}>
+                          <img 
+                            src={r.fotourl} 
+                            alt="Evidencia" 
+                            style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '12px', border: '1px solid #ddd' }} 
+                          />
+                        </Box>
+                      ))}
+
+                      {/* 2. SECCIÓN DE CONTENIDO: Aquí ya NO hay un "else", esto se ejecuta siempre */}
+                      {esSeleccionMultiple ? (
+                        // Si es múltiple, pintamos el universo de opciones con círculos
+                        todasLasOpciones.map((opcion) => {
+                          const estaMarcada = respuestas.some(r => 
+                            (r.idopcion && Number(r.idopcion) === Number(opcion.id)) || 
+                            (r.opcion?.id && Number(r.opcion.id) === Number(opcion.id)) ||
+                            (r.descripcion?.trim().toLowerCase() === opcion.descripcion?.trim().toLowerCase())
+                          );
+                          return (
+                            <Typography 
+                              key={opcion.id}
+                              variant="body2" 
+                              sx={{ 
+                                // Color negro sólido para lo seleccionado, gris para lo demás
+                                color: estaMarcada ? '#1a1a1a' : '#d1d1d1',
+                                fontWeight: estaMarcada ? '700' : '400',
+                                display: 'flex', 
+                                alignItems: 'center',
+                                mb: 0.5
+                              }}
+                            >
+                              <span style={{ marginRight: '8px', color: estaMarcada ? '#004d40' : '#e0e0e0' }}>
+                                {estaMarcada ? '●' : '○'}
+                              </span>
+                              {opcion.descripcion}
+                            </Typography>
+                          );
+                        })
+                      ) : (
+                        // Si es única o texto, solo pintamos los textos que NO sean URLs de fotos
+                        respuestas.filter(r => !r.fotourl).map((r, rIdx) => (
+                          <Typography key={rIdx} variant="body1" sx={{ color: '#333', display: 'flex', alignItems: 'center', fontWeight: '500' }}>
                             <span style={{ marginRight: '8px', color: '#004d40' }}>•</span>
-                            {r.opcion?.descripcion || r.descripcion || "Sin respuesta"}
+                            {r.personal?.nombre_completo || r.opcion?.descripcion || r.descripcion || "Sin respuesta"}
                           </Typography>
-                        )}
-                      </Box>
-                    ))}
-                  </Box>
-                </ListItem>
-                <Divider />
-              </div>
-            ))}
+                        ))
+                      )}
+                    </Box>
+                  </ListItem>
+                  <Divider />
+                </div>
+              );
+            })}
           </List>
         </Box>
       </Modal>

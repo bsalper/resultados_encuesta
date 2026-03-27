@@ -26,7 +26,10 @@ export default function Dashboard() {
               descripcion,
               idopcion,
               fotourl,
-              pregunta:idpregunta (descripcion),
+              pregunta:idpregunta (
+                descripcion,
+                opciones:tiporespuesta (id:idopcion, descripcion)
+              ),
               opcion:idopcion (descripcion),
               personal:id_personal_respondido (nombre_completo)
             )
