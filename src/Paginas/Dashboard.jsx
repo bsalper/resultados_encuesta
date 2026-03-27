@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import supabase from '../Servicios/supabaseClient'
 import { useNavigate } from "react-router-dom";
-
 import ReportTable from "../Componentes/TablaReportes";
 import Filters from "../Componentes/Filtros";
 
@@ -19,17 +18,16 @@ export default function Dashboard() {
           .from("formularios_hechos")
           .select(`
             id_formulario,
-            nombre_encuestado,
             fecha,
             tipo_formulario,
             respuestas_operario (
-              idrespuestas,
               idpregunta,
               descripcion,
               idopcion,
               fotourl,
-              pregunta:idpregunta (descripcion), 
-              opcion:idopcion (descripcion)
+              pregunta:idpregunta (descripcion),
+              opcion:idopcion (descripcion),
+              personal:id_personal_respondido (nombre_completo)
             )
           `)
           .ilike('tipo_formulario', '%operario%')
@@ -44,6 +42,7 @@ export default function Dashboard() {
           const formateados = data.map(form => {
             const respPatente = form.respuestas_operario?.find(r => Number(r.idpregunta) === 32);
             const respuestas = form.respuestas_operario || [];
+            const respChofer = respuestas.find(r => Number(r.idpregunta) === 15);
 
             const checkAlerta = (idPregunta) => {
               const r = respuestas.find(res => Number(res.idpregunta) === idPregunta);
@@ -53,9 +52,9 @@ export default function Dashboard() {
 
             return {
               id: form.id_formulario,
-              usuario: form.nombre_encuestado || "Usuario Desconocido",
+              usuario: respChofer?.personal?.nombre_completo || "Sin Chofer",
               fecha: form.fecha,
-              respuestas: form.respuestas_operario,
+              respuestas: respuestas,
               patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A",
               alertas: {
                 bateria: checkAlerta(37),
@@ -146,7 +145,7 @@ export default function Dashboard() {
               <thead>
                 <tr>
                   <th>PATENTE VEHÍCULO</th>
-                  <th className="text-right">CANTIDAD DE VIAJES</th>
+                  <th className="text-right">CANTIDAD DE CHECKLIST</th>
                 </tr>
               </thead>
               <tbody>

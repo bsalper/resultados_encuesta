@@ -17,7 +17,7 @@ import imgParachoques from '../assets/parachoque.png';
 import imgCandado from '../assets/candado.png';
 
 // Recibimos "searchText" como prop desde el padre
-export default function TablaReportes({ rows = [], searchText = "" }) {
+export default function TablaReportes({ rows = [], searchText = "", showAuxiliares = false }) {
   const [selectedSurvey, setSelectedSurvey] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: 'fecha', direction: 'desc' });
 
@@ -29,12 +29,10 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
 
     if (searchText) {
       const term = searchText.toLowerCase().trim();
-      items = items.filter(row => {
-        const nombre = String(row?.usuario || "").toLowerCase();
-        const patente = String(row?.patente || "").toLowerCase();
-        
-        return nombre.includes(term) || patente.includes(term);
-      });
+      items = items.filter(row => 
+        String(row?.usuario || "").toLowerCase().includes(term) || 
+        String(row?.patente || "").toLowerCase().includes(term)
+      );
     }
 
     // Lógica de ordenamiento
@@ -61,13 +59,12 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
     if (!selectedSurvey?.respuestas) return {};
     
     return selectedSurvey.respuestas.reduce((acc, current) => {
-      const preguntaTitulo = current.pregunta?.descripcion ||
-                             current.pregunta?.pregunta?.descripcion ||
-                             "Pregunta sin Título";
+      const preguntaTitulo = 
+        current.pregunta?.descripcion ||
+        current.descripcion ||
+        `Pregunta #${current.idpregunta}`;
 
-      if (!acc[preguntaTitulo]) {
-        acc[preguntaTitulo] = [];
-      }
+      if (!acc[preguntaTitulo]) acc[preguntaTitulo] = [];
       acc[preguntaTitulo].push(current);
       return acc;
     }, {});
@@ -88,6 +85,8 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
       : <ArrowDownwardIcon sx={{ fontSize: '1rem' }} />;
   };
 
+  const nombreChofer = selectedSurvey?.respuestas?.find(r => r.personal?.nombre_completo)?.personal?.nombre_completo || "Sin Chofer";
+
   return (
     <div className="main-wrapper" style={{ width: '100%' }}>
       <div className="report-container">
@@ -98,6 +97,11 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
                 <Box display="flex" alignItems="center" gap={1}>Chofer {getSortIcon('usuario')}</Box>
               </th>
               <th>Patente</th>
+
+              {/* 2. Cabeceras condicionales */}
+              {showAuxiliares && <th>Auxiliar 1</th>}
+              {showAuxiliares && <th>Auxiliar 2</th>}
+
               <th onClick={() => requestSort('fecha')} style={{ cursor: 'pointer' }}>
                 <Box display="flex" alignItems="center" gap={1}>Fecha {getSortIcon('fecha')}</Box>
               </th>
@@ -110,6 +114,9 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
               <tr key={row.id}>
                 <td className="font-bold">{row.usuario}</td>
                 <td className="font-bold" style={{ color: '#004d40' }}>{row.patente || "N/A"}</td>
+                {/* 3. Celdas condicionales */}
+                {showAuxiliares && <td>{row.auxiliar1 || "—"}</td>}
+                {showAuxiliares && <td>{row.auxiliar2 || "—"}</td>}
                 <td>{row.fecha ? new Date(row.fecha).toLocaleString('es-CL') : '—'}</td>
                 <td style={{ textAlign: 'center' }}>
                   <Box display="flex" justifyContent="center" gap={1}>
@@ -240,7 +247,7 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
             mb={3} 
             sx={{ backgroundColor: '#f5f5f5', p: 1.5, borderRadius: 2, display: 'flex', gap: 2 }}
           >
-            <span>👤 <strong>{selectedSurvey?.usuario}</strong></span>
+            <span>👤 <strong>{nombreChofer}</strong></span>
             <span>📅 {selectedSurvey?.fecha ? new Date(selectedSurvey.fecha).toLocaleString('es-CL') : ''}</span>
             {selectedSurvey?.patente && <span>🚗 <strong>{selectedSurvey.patente}</strong></span>}
           </Typography>
@@ -260,7 +267,7 @@ export default function TablaReportes({ rows = [], searchText = "" }) {
                         ) : (
                           <Typography variant="body1" sx={{ color: '#333', display: 'flex', alignItems: 'center' }}>
                             <span style={{ marginRight: '8px', color: '#004d40' }}>•</span>
-                            {r.tiporespuesta?.descripcion || r.opcion?.descripcion || r.descripcion || "—"}
+                            {r.opcion?.descripcion || r.descripcion || "Sin respuesta"}
                           </Typography>
                         )}
                       </Box>

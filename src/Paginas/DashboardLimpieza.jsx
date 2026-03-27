@@ -20,19 +20,18 @@ export default function Dashboard() {
       const { data, error } = await supabase
         .from("formularios_hechos")
         .select(`
-          id_formulario,
-          nombre_encuestado,
-          fecha,
-          tipo_formulario,
-          respuestas_limpieza (
-            idrespuestas,
-            idpregunta,
-            descripcion,
-            idopcion,
-            fotourl,
-            pregunta:idpregunta (descripcion), 
-            opcion:idopcion (descripcion)
-          )
+            id_formulario,
+            fecha,
+            tipo_formulario,
+            respuestas_limpieza (
+              idpregunta,
+              descripcion,
+              idopcion,
+              fotourl,
+              pregunta:idpregunta (descripcion),
+              opcion:idopcion (descripcion),
+              personal:id_personal_respondido (nombre_completo)
+            )
         `)
         .ilike('tipo_formulario', '%limpieza%')
         .order('fecha', { ascending: false });
@@ -44,40 +43,37 @@ export default function Dashboard() {
 
         if (data) {
         const formateados = data.map(form => {
-
+          const respuestasOriginales = form.respuestas_limpieza || [];
+          const respuestasProcesadas = respuestasOriginales.map(r => {
+            if (r.personal?.nombre_completo) {
+              return { ...r, descripcion: r.personal.nombre_completo };
+            }
+            return r;
+          });
           const respuestas = form.respuestas_limpieza || [];
           const respChofer = respuestas.find(r => Number(r.idpregunta) === 39);
           const respPatente = respuestas.find(r => Number(r.idpregunta) === 40);
           
-          const checkAlerta = (idPregunta) => {
+          const respAux1 = respuestasProcesadas.find(r => Number(r.idpregunta) === 52);
+          const respAux2 = respuestasProcesadas.find(r => Number(r.idpregunta) === 53);
+          /*const checkAlerta = (idPregunta) => {
             const r = respuestas.find(res => Number(res.idpregunta) === idPregunta);
             
             const textoRespuesta = r?.opcion?.descripcion || r?.descripcion || "";
             
             return textoRespuesta.trim().toLowerCase() === "requiere atención";
-          };
+          };*/
 
           return {
             id: form.id_formulario,
-            usuario: respChofer?.descripcion || "Usuario Desconocido",
+            usuario: respChofer?.personal?.nombre_completo || respChofer?.descripcion || "Usuario Desconocido",
             fecha: form.fecha,
-            respuestas: form.respuestas_limpieza, // Pasamos las respuestas tal cual para el Modal
-            // Extraemos la patente solo para mostrarla en la columna de la tabla
+            respuestas: respuestasProcesadas,
             patente: respPatente?.opcion?.descripcion || respPatente?.descripcion || "N/A",
-
-            alertas: {
-              bateria: checkAlerta(37),
-              neumaticos: checkAlerta(25),
-              aceite: checkAlerta(29),
-              frenos: checkAlerta(38),
-              refrigerante: checkAlerta(36),
-              lucesd: checkAlerta(24),
-              lucest: checkAlerta(33),
-              neumaticosr: checkAlerta(34),
-              parachoques: checkAlerta(35),
-              espejos: checkAlerta(23),
-              candado: checkAlerta(26)
-            }
+            auxiliar1: respAux1?.descripcion || "—",
+            auxiliar2: respAux2?.descripcion || "—"
+            /*alertas: { 
+            }*/
           };
         });
         setRows(formateados);
@@ -121,11 +117,28 @@ export default function Dashboard() {
   }, [rows, searchText, startDate, endDate]);
 
   const stats = useMemo(() => {
+    // 1. Agrupar conteo de auxiliares
+    const conteoAuxiliares = filteredRows.reduce((acc, current) => {
+      // Revisamos ambos auxiliares (si existen y no son "—")
+      [current.auxiliar1, current.auxiliar2].forEach(aux => {
+        if (aux && aux !== "—") {
+          acc[aux] = (acc[aux] || 0) + 1;
+        }
+      });
+      return acc;
+    }, {});
+
+    // 2. Convertir el objeto a una lista ordenada por cantidad
+    const listaAuxiliares = Object.entries(conteoAuxiliares)
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad);
+
     return {
-      total: rows.length,
-      latest: rows[0]?.fecha ? new Date(rows[0].fecha).toLocaleString('es-CL') : '—',
+      totalRevisiones: filteredRows.length,
+      auxiliaresAgrupados: listaAuxiliares,
+      latest: filteredRows[0]?.fecha ? new Date(filteredRows[0].fecha).toLocaleString('es-CL') : '—',
     };
-  }, [rows]);
+  }, [filteredRows]);
 
   return (
     <div className="dashboard-container">
@@ -137,32 +150,66 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* CARDS DE ESTADÍSTICAS */}
+      {/* CARDS DE ESñTADÍSTICAS: Ahora las 3 están en el mismo grid */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <span className="stat-label">Revisiones totales</span>
-          <span className="stat-value">{stats.total}</span>
+        
+        {/* 1. REVISIONES POR AUXILIAR */}
+        <div className="stat-card table-card">
+          <div className="table-card-header">
+            <span className="stat-label">Revisiones por Auxiliar</span>
+            <span className="stat-total-label">
+              Total Checklist: <strong>{stats.totalRevisiones}</strong>
+            </span>
+          </div>
+          
+          <div className="mini-table-container">
+            <table className="mini-stat-table">
+              <thead>
+                <tr>
+                  <th>NOMBRE AUXILIAR</th>
+                  <th className="text-right">CANTIDAD</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.auxiliaresAgrupados.length > 0 ? (
+                  stats.auxiliaresAgrupados.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.nombre}</td>
+                      <td className="text-right count-cell">{item.cantidad}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="2" className="text-center empty-cell">No hay datos de auxiliares</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
+
+        {/* 2. ÚLTIMO REGISTRO */}
         <div className="stat-card">
           <span className="stat-label">Último registro</span>
           <span className="stat-value small-text">{stats.latest}</span>
         </div>
-      </div>
 
-      {/* ACCESO A LIMPIEZA */}
-      <div 
-        className="stat-card clickable-card" 
-        onClick={() => navigate("/dashboard")}
-        style={{ cursor: 'pointer', borderLeft: '5px solid #E7F63C' }}
-      >
-        <span className="stat-label">Reporte Checklist Camión</span>
-        <div className="stat-link-content">
-          <span className="stat-value small-text">Ir a Ckecklist Camión</span>
-          <span className="arrow-icon">→</span>
+        {/* 3. ACCESO A CAMIÓN (Mantenido dentro del grid para alineación) */}
+        <div 
+          className="stat-card clickable-card" 
+          onClick={() => navigate("/dashboard")}
+          style={{ cursor: 'pointer', borderLeft: '5px solid #E7F63C' }}
+        >
+          <span className="stat-label">Reporte Checklist Camión</span>
+          <div className="stat-link-content">
+            <span className="stat-value small-text">Ir a Checklist Camión</span>
+            <span className="arrow-icon">→</span>
+          </div>
         </div>
+
       </div>
 
-      {/* BARRA DE FILTROS Y CONTADOR: UN SOLO BLOQUE CORREGIDO */}
+      {/* BARRA DE FILTROS Y CONTADOR */}
       <div className="actions-bar">
         <Filters 
           searchText={searchText} 
@@ -178,11 +225,11 @@ export default function Dashboard() {
       </div>
 
       {/* TABLA PERSONALIZADA */}
-      <ReportTable rows={filteredRows} />
+      <ReportTable rows={filteredRows} showAuxiliares={true}/>
 
       {/* FOOTER */}
       <footer className="dashboard-footer">
-        <p>{new Date().getFullYear()} © <strong>Moving Food</strong> - Checklist de Camiones</p>
+        <p>{new Date().getFullYear()} © <strong>Moving Food</strong> - Checklist de Limpieza</p>
         <span>Desarrollado para la gestión interna de flotas.</span>
       </footer>
 
@@ -285,6 +332,20 @@ export default function Dashboard() {
           display: block;
           margin-top: 5px;
         }
+
+        .table-card { padding: 15px !important; min-width: 300px; }
+        .table-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .stat-total-label { font-size: 0.8rem; color: #666; }
+        .mini-table-container { max-height: 150px; overflow-y: auto; }
+        .mini-stat-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+        .mini-stat-table th { text-align: left; background: #f4f4f4; padding: 5px; position: sticky; top: 0; color: #555; }
+        .mini-stat-table td { padding: 6px 5px; border-bottom: 1px solid #f0f0f0; }
+        .count-cell { font-weight: bold; color: #004d40; }
+        .text-right { text-align: right; }
+
+        .stat-link-content { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .arrow-icon { font-size: 1.2rem; font-weight: bold; color: #E7F63C; }
+        .clickable-card:hover { background-color: #fff9f0; transform: translateY(-2px); transition: all 0.2s ease; }
 
         @media (max-width: 600px) {
           .dashboard-header {
