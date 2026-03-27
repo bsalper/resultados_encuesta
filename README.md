@@ -1,70 +1,40 @@
-# Getting Started with Create React App
+# Dashboard Checklist Camiones - Reportes
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Este proyecto es una interfaz administrativa desarrollada en React y Material UI para visualizar, filtrar y auditar los checklists realizados por los operarios de transporte. Permite la revisión detallada de estados críticos (motor, neumáticos, luces) y la visualización de evidencias fotográficas.
 
-## Available Scripts
+## Funcionalidades
 
-In the project directory, you can run:
+* Tabla Dinámica: Visualización de registros con ordenamiento por fecha y chofer.
 
-### `npm start`
+* Alertas Visuales: Iconografía personalizada que resalta ítems que "Requieren Atención".
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+* Buscador Universal: Filtro en tiempo real por patente o nombre del conductor.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+* Filtro por Fecha: Selección de rangos para auditorías específicas.
 
-### `npm test`
+* Modal de Detalle: Desglose completo de cada formulario, incluyendo:
+- Visualización de múltiples fotos de evidencia.
+- Renderizado inteligente de selecciones múltiples (Checklist de documentos y kits).
+- Interfaz optimizada para lectura rápida.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Tecnologías Utilizadas
 
-### `npm run build`
+* Frontend: React.js (Vite/CRA)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+* UI Library: Material UI (MUI)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+* Backend as a Service: Supabase (PostgreSQL)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+* Iconografía: MUI Icons & Custom PNGs
 
-### `npm run eject`
+## Estructura del Proyecto
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+* /src/Componentes: Contiene TablaReportes.jsx (Lógica del Modal y visualización) y Filtros.jsx.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+* /src/Servicios: Cliente de conexión a Supabase.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+* /src/assets: Iconos de alertas (batería, neumáticos, aceite, etc.).
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Vista Previa
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+![alt text](image.png)git 
