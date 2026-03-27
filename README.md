@@ -13,9 +13,9 @@ Este proyecto es una interfaz administrativa desarrollada en React y Material UI
 * Filtro por Fecha: Selección de rangos para auditorías específicas.
 
 * Modal de Detalle: Desglose completo de cada formulario, incluyendo:
-- Visualización de múltiples fotos de evidencia.
-- Renderizado inteligente de selecciones múltiples (Checklist de documentos y kits).
-- Interfaz optimizada para lectura rápida.
+-   Visualización de múltiples fotos de evidencia.
+-   Renderizado inteligente de selecciones múltiples (Checklist de documentos y kits).
+-   Interfaz optimizada para lectura rápida.
 
 ## Tecnologías Utilizadas
 
@@ -27,6 +27,16 @@ Este proyecto es una interfaz administrativa desarrollada en React y Material UI
 
 * Iconografía: MUI Icons & Custom PNGs
 
+## Instalación y Configuración
+
+1.  [git clone https://github.com/tu-usuario/reporte-checklist-mf.git]
+    cd reporte-checklist-mf
+
+2. Instalar dependencias:
+
+    ### npm install
+
+
 ## Estructura del Proyecto
 
 * /src/Componentes: Contiene TablaReportes.jsx (Lógica del Modal y visualización) y Filtros.jsx.
@@ -35,6 +45,8 @@ Este proyecto es una interfaz administrativa desarrollada en React y Material UI
 
 * /src/assets: Iconos de alertas (batería, neumáticos, aceite, etc.).
 
+* /src/Paginas: Contiene Dashboard.jsx, DashboardLimpieza.jsx y DashboardLimpieza.css
+
 ## Vista Previa
 
-![alt text](image.png)git 
+![alt text](image.png)
