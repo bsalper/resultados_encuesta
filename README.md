@@ -4,18 +4,18 @@ Este proyecto es una interfaz administrativa desarrollada en React y Material UI
 
 ## Funcionalidades
 
-* Tabla Dinámica: Visualización de registros con ordenamiento por fecha y chofer.
+* **Tabla Dinámica:** Visualización de registros con ordenamiento por fecha y chofer.
 
-* Alertas Visuales: Iconografía personalizada que resalta ítems que "Requieren Atención".
+* **Alertas Visuales:** Iconografía personalizada que resalta ítems que "Requieren Atención".
 
-* Buscador Universal: Filtro en tiempo real por patente o nombre del conductor.
+* **Buscador Universal:** Filtro en tiempo real por patente o nombre del conductor.
 
-* Filtro por Fecha: Selección de rangos para auditorías específicas.
+* **Filtro por Fecha:** Selección de rangos para auditorías específicas.
 
-* Modal de Detalle: Desglose completo de cada formulario, incluyendo:
--   Visualización de múltiples fotos de evidencia.
--   Renderizado inteligente de selecciones múltiples (Checklist de documentos y kits).
--   Interfaz optimizada para lectura rápida.
+* **Modal de Detalle:** Desglose completo de cada formulario, incluyendo:
+  * Visualización de múltiples fotos de evidencia.
+  * Renderizado inteligente de selecciones múltiples (Checklist de documentos y kits).
+  * Interfaz optimizada para lectura rápida.
 
 ## Tecnologías Utilizadas
 
@@ -34,8 +34,18 @@ Este proyecto es una interfaz administrativa desarrollada en React y Material UI
 
 2. Instalar dependencias:
 
-    ### npm install
+    npm install
 
+3. Variables de Entorno:
+
+    Crea un archivo .env en la raíz del proyecto con tus credenciales de Supabase:
+
+    REACT_APP_SUPABASE_URL=tu_url_de_supabase
+    REACT_APP_SUPABASE_KEY=tu_llave_anonima
+
+4. Ejecutar en desarrollo:
+
+    npm start
 
 ## Estructura del Proyecto
 
