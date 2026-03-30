@@ -311,13 +311,27 @@ export default function TablaReportes({ rows = [], searchText = "", showAuxiliar
                           );
                         })
                       ) : (
-                        // Si es única o texto, solo pintamos los textos que NO sean URLs de fotos
-                        respuestas.filter(r => !r.fotourl).map((r, rIdx) => (
-                          <Typography key={rIdx} variant="body1" sx={{ color: '#333', display: 'flex', alignItems: 'center', fontWeight: '500' }}>
-                            <span style={{ marginRight: '8px', color: '#004d40' }}>•</span>
-                            {r.personal?.nombre_completo || r.opcion?.descripcion || r.descripcion || "Sin respuesta"}
-                          </Typography>
-                        ))
+                        // Si es única o texto, pintamos los textos que NO sean URLs de fotos
+                        respuestas.filter(r => !r.fotourl).map((r, rIdx) => {
+                          // 1. Obtenemos el nombre de la opción (ej: "Requiere Atención")
+                          const textoOpcion = r.opcion?.descripcion || "";
+                          // 2. Obtenemos la nota extra (ej: "falta aceite")
+                          const notaExtra = r.descripcion || "";
+
+                          return (
+                            <Box key={rIdx} sx={{ mb: 1 }}>
+                              <Typography variant="body1" sx={{ color: '#333', display: 'flex', alignItems: 'center', fontWeight: '500' }}>
+                                <span style={{ marginRight: '8px', color: '#004d40' }}>•</span>
+                                {/* Mostramos la opción y, si existe nota, la concatenamos */}
+                                {r.personal?.nombre_completo || 
+                                (notaExtra && textoOpcion 
+                                    ? `${textoOpcion} — "${notaExtra}"` 
+                                    : (textoOpcion || notaExtra || "Sin respuesta"))
+                                }
+                              </Typography>
+                            </Box>
+                          );
+                        })
                       )}
                     </Box>
                   </ListItem>
